@@ -621,7 +621,7 @@ textarea::placeholder { color: #3d444d; }
     <div class="stack" id="stack">
       <div class="card-ghost" id="card-ghost"></div>
       <div class="card" id="card">
-        <div class="card-loading"><div class="spinner"></div><span>Analysing profile…</span></div>
+        <div class="card-loading"><div class="spinner"></div><span>Loading profile…</span></div>
       </div>
       <div class="stamp stamp-connect" id="stamp-connect">CONNECT</div>
       <div class="stamp stamp-skip"    id="stamp-skip">SKIP</div>
@@ -765,7 +765,6 @@ async function startSearch() {
 async function loadCard() {
   busy = false;
   currentData = null;
-  $('note-area').innerHTML = '';
   $('btn-no').disabled = $('btn-yes').disabled = false;
   $('stamp-connect').style.opacity = 0;
   $('stamp-skip').style.opacity    = 0;
@@ -797,8 +796,9 @@ async function loadCard() {
 function renderCard(card, data) {
   const { profile: p, evaluation: e } = data;
   const score = e.fit_score ?? 0;
-  const badgeClass  = e.verdict === 'strong_match' ? 'strong'   : e.verdict === 'weak_match' ? 'weak' : 'possible';
-  const badgeLabel  = e.verdict === 'strong_match' ? '✦ Strong match' : e.verdict === 'weak_match' ? 'Weak match' : '~ Possible match';
+  const badgeClass = e.verdict === 'strong_match' ? 'strong' : e.verdict === 'weak_match' ? 'weak' : 'possible';
+  const badgeLabel = e.verdict === 'strong_match' ? '✦ Strong match' : e.verdict === 'weak_match' ? 'Weak match' : '~ Possible match';
+  const reasons = (e.reasons || []).map(r => `<div class="reason">${esc(r)}</div>`).join('');
 
   const avatar = p.avatar_url
     ? `<img class="avatar" src="${esc(p.avatar_url)}" alt="" loading="lazy"
@@ -826,9 +826,6 @@ function renderCard(card, data) {
       ${r.description ? `<div class="repo-desc">${esc(r.description)}</div>` : ''}
     </a>`;
   }).join('');
-
-  const reasons = (e.reasons || [])
-    .map(r => `<div class="reason">${esc(r)}</div>`).join('');
 
   card.innerHTML = `
     <div class="card-header">

@@ -13,7 +13,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = "llama-3.3-70b-versatile"
+MODEL_FAST  = "llama-3.1-8b-instant"      # used for per-profile scoring (speed matters)
+MODEL_SMART = "llama-3.3-70b-versatile"   # used once per search to build the query
 
 GH_CLIENT_ID     = os.getenv("GITHUB_CLIENT_ID", "")
 GH_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
@@ -37,10 +38,12 @@ session = {"usernames": [], "criteria": [], "cache": {}, "evaluations": {}, "acc
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-def llm(messages):
+def llm(messages, fast=False):
     r = client.chat.completions.create(
-        model=MODEL, messages=messages, temperature=0.3,
+        model=MODEL_FAST if fast else MODEL_SMART,
+        messages=messages, temperature=0.3,
         response_format={"type": "json_object"},
+        timeout=15,
     )
     return json.loads(r.choices[0].message.content)
 
@@ -145,7 +148,7 @@ Return JSON:
   summary       – 2 concrete sentences about who this person is technically
   reasons       – array of 2-3 short strings explaining the score
   note          – 1 personalized GitHub/LinkedIn connection message <220 chars, mention a specific repo"""},
-    ])
+    ], fast=True)
     session["evaluations"][idx] = data
     return data
 
