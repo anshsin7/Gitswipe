@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GitSwipe</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0d1117;
+  --surface: #161b22;
+  --surface2:#1c2128;
+  --border:  #30363d;
+  --text:    #e6edf3;
+  --muted:   #8b949e;
+  --dim:     #484f58;
+  --purple:  #a371f7;
+  --blue:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --yellow:  #d29922;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── HEADER ── */
+header {
+  width: 100%;
+  max-width: 420px;
+  padding: 22px 20px 0;
+  text-align: center;
+}
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.logo-sub {
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 3px;
+  letter-spacing: 0.2px;
+}
+
+/* ── PROGRESS BAR ── */
+#prog-wrap {
+  width: 100%;
+  max-width: 420px;
+  height: 2px;
+  background: var(--border);
+  margin: 14px 0 0;
+  display: none;
+}
+#prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--blue));
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+#prog-label {
+  font-size: 11px;
+  color: var(--dim);
+  text-align: center;
+  margin-top: 6px;
+  min-height: 16px;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; width: 100%; max-width: 420px; padding: 20px 16px 40px; flex-direction: column; align-items: center; }
+.screen.active { display: flex; }
+
+/* ════════════ SETUP ════════════ */
+.setup-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px 24px;
+  width: 100%;
+}
+.setup-card h2 {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.setup-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--text);
+  resize: vertical;
+  margin-bottom: 20px;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color 0.2s;
+}
+textarea:focus { border-color: var(--purple); }
+textarea::placeholder { color: #3d444d; }
+
+#search-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #6e28d9, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  letter-spacing: 0.3px;
+}
+#search-btn:hover:not(:disabled) { opacity: 0.88; }
+#search-btn:active:not(:disabled) { transform: scale(0.98); }
+#search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.query-chip {
+  margin-top: 14px;
+  background: rgba(163,113,247,0.08);
+  border: 1px solid rgba(163,113,247,0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: none;
+}
+.query-chip .ql { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.query-chip .qv { font-size: 12.5px; color: var(--purple); font-weight: 600; }
+
+/* ════════════ SWIPE ════════════ */
+#screen-swipe { padding-top: 12px; }
+
+.stack {
+  position: relative;
+  width: 100%;
+  height: 540px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+/* ghost card behind */
+.card-ghost {
+  position: absolute;
+  top: 16px;
+  width: calc(100% - 28px);
+  height: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  transform: scale(0.93);
+  transform-origin: bottom center;
+  transition: transform 0.35s;
+}
+
+/* main card */
+.card {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+  will-change: transform;
+}
+.card:active { cursor: grabbing; }
+.card.snapping { transition: transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94); }
+
+/* CONNECT / SKIP stamps */
+.stamp {
+  position: absolute;
+  top: 26px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  border: 3px solid;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+  transition: opacity 0.04s linear;
+}
+.stamp-connect {
+  left: 18px;
+  color: var(--green);
+  border-color: var(--green);
+  background: rgba(63,185,80,0.1);
+  transform: rotate(-12deg);
+}
+.stamp-skip {
+  right: 18px;
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(248,81,73,0.1);
+  transform: rotate(12deg);
+}
+
+/* card header */
+.card-header {
+  background: linear-gradient(150deg, #1a0d3a 0%, #0b1d3c 100%);
+  padding: 24px 20px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.avatar {
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.1);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--surface);
+  display: block;
+}
+.avatar-fallback {
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #1d4ed8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 800; color: white;
+  flex-shrink: 0;
+}
+.header-info { flex: 1; min-width: 0; }
+.p-name {
+  font-size: 19px; font-weight: 800; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.p-handle { font-size: 12px; color: var(--blue); margin-top: 2px; }
+.p-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pill {
+  font-size: 11px; color: var(--muted);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 99px; padding: 3px 10px;
+}
+
+/* card body */
+.card-body { padding: 16px 20px 20px; }
+
+.p-bio {
+  font-size: 13px; color: var(--muted); line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+/* repos */
+.repos { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.repo {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 13px;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.15s;
+  pointer-events: auto;
+}
+.repo:hover { border-color: var(--blue); }
+.repo-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.repo-name { font-size: 12.5px; font-weight: 600; color: var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.repo-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.repo-stars { font-size: 11px; color: var(--dim); }
+.lang-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.repo-desc { font-size: 11.5px; color: var(--dim); margin-top: 3px; line-height: 1.45; }
+
+/* AI analysis box */
+.analysis {
+  background: rgba(163,113,247,0.06);
+  border: 1px solid rgba(163,113,247,0.14);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.analysis-hd {
+  font-size: 10px; font-weight: 700;
+  color: var(--purple); text-transform: uppercase;
+  letter-spacing: 0.8px; margin-bottom: 8px;
+}
+.analysis-summary {
+  font-size: 12.5px; color: var(--muted); line-height: 1.65;
+  margin-bottom: 9px;
+}
+.reasons { display: flex; flex-direction: column; gap: 4px; }
+.reason {
+  font-size: 12px; color: var(--dim);
+  display: flex; align-items: flex-start; gap: 6px; line-height: 1.45;
+}
+.reason::before { content: '→'; color: var(--purple); flex-shrink: 0; }
+
+/* score row */
+.score-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px; border-top: 1px solid var(--border);
+}
+.badge {
+  font-size: 11.5px; font-weight: 700;
+  padding: 4px 12px; border-radius: 99px; letter-spacing: 0.2px;
+}
+.badge.strong   { background: rgba(63,185,80,.1);  color: #3fb950; border: 1px solid rgba(63,185,80,.2); }
+.badge.possible { background: rgba(210,153,34,.09); color: #d29922; border: 1px solid rgba(210,153,34,.2); }
+.badge.weak     { background: rgba(248,81,73,.09);  color: #f85149; border: 1px solid rgba(248,81,73,.2); }
+
+.score-right { display: flex; align-items: center; gap: 8px; }
+.score-bar { width: 80px; height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.score-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--purple), var(--blue));
+  transition: width 0.7s ease;
+}
+.score-num { font-size: 14px; font-weight: 800; color: var(--text); }
+
+/* skeleton / loading */
+.card-loading {
+  padding: 44px 20px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 440px; gap: 12px;
+  color: var(--muted); font-size: 14px;
+}
+.spinner {
+  width: 26px; height: 26px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* action buttons */
+.actions { display: flex; align-items: center; justify-content: center; gap: 44px; margin-bottom: 4px; }
+
+.act-btn {
+  width: 66px; height: 66px;
+  border-radius: 50%; border: none;
+  font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  background: var(--surface);
+}
+.act-btn:active:not(:disabled) { transform: scale(0.88) !important; }
+.act-btn:disabled { opacity: 0.28; cursor: not-allowed; transform: none !important; }
+
+.btn-no {
+  color: var(--red);
+  border: 1.5px solid rgba(248,81,73,0.2);
+  box-shadow: 0 6px 18px rgba(248,81,73,0.1);
+}
+.btn-no:hover:not(:disabled) { transform: scale(1.1); border-color: var(--red); box-shadow: 0 10px 28px rgba(248,81,73,0.28); }
+
+.btn-yes {
+  color: var(--green);
+  border: 1.5px solid rgba(63,185,80,0.2);
+  box-shadow: 0 6px 18px rgba(63,185,80,0.1);
+}
+.btn-yes:hover:not(:disabled) { transform: scale(1.1); border-color: var(--green); box-shadow: 0 10px 28px rgba(63,185,80,0.28); }
+
+.kbd-hint { font-size: 11px; color: var(--border); text-align: center; letter-spacing: 0.3px; }
+
+/* connection note */
+.note-box {
+  width: 100%;
+  background: rgba(63,185,80,0.05);
+  border: 1px solid rgba(63,185,80,0.18);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.note-label { font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.note-text { font-size: 13px; color: #d1fae5; line-height: 1.65; margin-bottom: 12px; }
+.note-row { display: flex; align-items: center; gap: 10px; }
+.copy-btn {
+  background: rgba(63,185,80,0.12);
+  color: var(--green);
+  border: 1px solid rgba(63,185,80,0.2);
+  border-radius: 7px; padding: 5px 14px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.copy-btn:hover { background: rgba(63,185,80,0.22); }
+.gh-link {
+  font-size: 12px; color: var(--blue);
+  text-decoration: none;
+}
+.gh-link:hover { text-decoration: underline; }
+
+/* ════════════ DONE ════════════ */
+.done-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 34px 24px;
+  text-align: center;
+  width: 100%;
+}
+.done-big { font-size: 46px; margin-bottom: 12px; }
+.done-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+.done-card .sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+.result-list { text-align: left; }
+.result-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.result-item:last-child { border-bottom: none; }
+.r-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--border); }
+.r-info { flex: 1; min-width: 0; }
+.r-name { font-weight: 700; font-size: 14px; color: var(--text); }
+.r-handle { font-size: 12px; color: var(--blue); }
+.r-note { font-size: 12px; color: var(--purple); margin-top: 4px; line-height: 1.45; }
+
+.done-btn {
+  width: 100%; border: none; border-radius: 10px;
+  padding: 13px; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 8px; transition: opacity 0.2s;
+}
+.done-btn:hover { opacity: 0.85; }
+.done-btn.primary { background: linear-gradient(135deg, #6e28d9, #1d4ed8); color: white; }
+.done-btn.secondary { background: var(--surface2); color: var(--dim); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GitSwipe</div>
+  <div class="logo-sub">Swipe through GitHub developers · powered by AI</div>
+</header>
+
+<div id="prog-wrap"><div id="prog-fill"></div></div>
+<div id="prog-label"></div>
+
+<!-- ════════ SETUP ════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-card">
+    <h2>Who are you looking for?</h2>
+    <p>Describe your ideal collaborator in plain English. GitSwipe searches GitHub and scores every profile with AI — then lets you swipe.</p>
+
+    <label>Your criteria — one per line</label>
+    <textarea id="criteria" rows="5"
+      placeholder="Works in AI / machine learning&#10;Based in Zurich or studying at ETH&#10;Open source contributor with hardware experience&#10;Has >500 GitHub followers"></textarea>
+
+    <button id="search-btn" onclick="startSearch()">Find Developers →</button>
+
+    <div class="query-chip" id="query-chip">
+      <div class="ql">GitHub search query</div>
+      <div class="qv" id="query-text"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SWIPE ════════ -->
+<div class="screen" id="screen-swipe">
+  <div class="stack" id="stack">
+    <div class="card-ghost" id="card-ghost"></div>
+    <div class="card" id="card">
+      <div class="card-loading"><div class="spinner"></div><span>Analysing profile…</span></div>
+    </div>
+    <div class="stamp stamp-connect" id="stamp-connect">CONNECT</div>
+    <div class="stamp stamp-skip"    id="stamp-skip">SKIP</div>
+  </div>
+
+  <div id="note-area"></div>
+
+  <div class="actions">
+    <button class="act-btn btn-no"  id="btn-no"  onclick="decide('no')"  title="Skip  (N / ←)">✕</button>
+    <button class="act-btn btn-yes" id="btn-yes" onclick="decide('yes')" title="Connect  (Y / →)">✓</button>
+  </div>
+  <div class="kbd-hint">← N &nbsp;skip &nbsp;·&nbsp; connect Y → &nbsp;·&nbsp; or drag the card</div>
+</div>
+
+<!-- ════════ DONE ════════ -->
+<div class="screen" id="screen-done">
+  <div class="done-card">
+    <div class="done-big">🎉</div>
+    <h2 id="done-title"></h2>
+    <p class="sub" id="done-sub"></p>
+    <div class="result-list" id="results-list"></div>
+    <button class="done-btn primary" onclick="saveResults()">Save results to JSON</button>
+    <button class="done-btn secondary" onclick="location.reload()">New search</button>
+  </div>
+</div>
+
+<script>
+const LANG_COLORS = {
+  Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#3178c6', Go:'#00ADD8',
+  Rust:'#dea584', 'C++':'#f34b7d', C:'#555599', Java:'#b07219', Ruby:'#701516',
+  Swift:'#F05138', Kotlin:'#A97BFF', 'C#':'#178600', Shell:'#89e051',
+  HTML:'#e34c26', CSS:'#563d7c', Vue:'#41b883', Jupyter:'#DA5B0B',
+  Scala:'#c22d40', Haskell:'#5e5086', Elixir:'#6e4a7e', Dart:'#00B4AB',
+  MATLAB:'#e16737', R:'#198CE7', Zig:'#ec915c',
+};
+
+let idx = 0, total = 0, busy = false, currentData = null;
+
+const $  = id => document.getElementById(id);
+const esc = s => String(s ?? '')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+async function post(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+// ── progress ──────────────────────────────────────────────────────────────
+function setProgress(cur, tot) {
+  if (!tot) { $('prog-wrap').style.display = 'none'; $('prog-label').textContent = ''; return; }
+  $('prog-wrap').style.display = 'block';
+  $('prog-fill').style.width   = `${Math.round((cur / tot) * 100)}%`;
+  $('prog-label').textContent  = `${cur} / ${tot}`;
+}
+
+// ── setup ─────────────────────────────────────────────────────────────────
+async function startSearch() {
+  const raw = $('criteria').value.trim();
+  if (!raw) { alert('Enter at least one criterion.'); return; }
+  const criteria = raw.split('\n').map(s => s.trim()).filter(Boolean);
+
+  const btn = $('search-btn');
+  btn.disabled = true; btn.textContent = 'Searching GitHub…';
+
+  try {
+    const data = await post('/api/search', { criteria });
+    if (data.error) { alert('Error: ' + data.error); btn.disabled = false; btn.textContent = 'Find Developers →'; return; }
+
+    $('query-text').textContent = data.query;
+    $('query-chip').style.display = 'block';
+
+    total = data.total; idx = 0;
+    if (total === 0) {
+      alert('No developers found — try broader criteria.');
+      btn.disabled = false; btn.textContent = 'Find Developers →';
+      return;
+    }
+
+    setProgress(0, total);
+    setTimeout(() => { show('screen-swipe'); loadCard(); }, 500);
+  } catch {
+    alert('Server error. Make sure app.py is running.');
+    btn.disabled = false; btn.textContent = 'Find Developers →';
+  }
+}
+
+// ── card ──────────────────────────────────────────────────────────────────
+async function loadCard() {
+  busy = false;
+  currentData = null;
+  $('note-area').innerHTML = '';
+  $('btn-no').disabled = $('btn-yes').disabled = false;
+  $('stamp-connect').style.opacity = 0;
+  $('stamp-skip').style.opacity    = 0;
+
+  const card = $('card');
+  card.className = 'card';
+  card.style.transform = '';
+  card.innerHTML = '<div class="card-loading"><div class="spinner"></div><span>Analysing profile…</span></div>';
+
+  setProgress(idx, total);
+
+  const data = await fetch(`/api/profile/${idx}`)
+    .then(r => r.json())
+    .catch(() => ({ error: 'Network error' }));
+
+  if (data.done) { showDone(); return; }
+  if (data.error) {
+    card.innerHTML = `<div class="card-loading" style="color:#f85149">${esc(data.error)}</div>`;
+    setTimeout(() => { idx++; loadCard(); }, 2200);
+    return;
+  }
+
+  currentData = data;
+  renderCard(card, data);
+  attachDrag(card);
+}
+
+function renderCard(card, data) {
+  const { profile: p, evaluation: e } = data;
+  const score = e.fit_score ?? 0;
+  const badgeClass  = e.verdict === 'strong_match' ? 'strong'   : e.verdict === 'weak_match' ? 'weak' : 'possible';
+  const badgeLabel  = e.verdict === 'strong_match' ? '✦ Strong match' : e.verdict === 'weak_match' ? 'Weak match' : '~ Possible match';
+
+  const avatar = p.avatar_url
+    ? `<img class="avatar" src="${esc(p.avatar_url)}" alt="" loading="lazy"
+         onerror="this.replaceWith(makeFallback(${JSON.stringify(p.name ?? '?')}))">`
+    : makeFallback(p.name ?? '?').outerHTML;
+
+  const pills = [
+    p.location    && `<span class="pill">📍 ${esc(p.location)}</span>`,
+    p.company     && `<span class="pill">🏢 ${esc(p.company)}</span>`,
+    p.followers   && `<span class="pill">👥 ${Number(p.followers).toLocaleString()}</span>`,
+    p.public_repos&& `<span class="pill">📦 ${p.public_repos}</span>`,
+  ].filter(Boolean).join('');
+
+  const repos = (p.repos || []).map(r => {
+    const col = LANG_COLORS[r.language] || '#555';
+    return `<a class="repo" href="${esc(r.url)}" target="_blank" rel="noopener"
+               onclick="event.stopPropagation()">
+      <div class="repo-top">
+        <span class="repo-name">${esc(r.name)}</span>
+        <span class="repo-right">
+          <span class="repo-stars">★ ${r.stars}</span>
+          ${r.language ? `<span class="lang-dot" style="background:${col}" title="${esc(r.language)}"></span>` : ''}
+        </span>
+      </div>
+      ${r.description ? `<div class="repo-desc">${esc(r.description)}</div>` : ''}
+    </a>`;
+  }).join('');
+
+  const reasons = (e.reasons || [])
+    .map(r => `<div class="reason">${esc(r)}</div>`).join('');
+
+  card.innerHTML = `
+    <div class="card-header">
+      ${avatar}
+      <div class="header-info">
+        <div class="p-name">${esc(p.name)}</div>
+        <div class="p-handle">@${esc(p.username)}</div>
+        <div class="p-meta">${pills}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      ${p.bio ? `<div class="p-bio">${esc(p.bio)}</div>` : ''}
+      ${repos ? `<div class="repos">${repos}</div>` : ''}
+      ${e.summary ? `
+      <div class="analysis">
+        <div class="analysis-hd">✦ AI Analysis</div>
+        <div class="analysis-summary">${esc(e.summary)}</div>
+        ${reasons ? `<div class="reasons">${reasons}</div>` : ''}
+      </div>` : ''}
+      <div class="score-row">
+        <span class="badge ${badgeClass}">${badgeLabel}</span>
+        <div class="score-right">
+          <div class="score-bar"><div class="score-fill" style="width:${score}%"></div></div>
+          <span class="score-num">${score}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function makeFallback(name) {
+  const d = document.createElement('div');
+  d.className = 'avatar-fallback';
+  d.textContent = (name[0] ?? '?').toUpperCase();
+  return d;
+}
+
+// ── drag-to-swipe ─────────────────────────────────────────────────────────
+function attachDrag(card) {
+  let sx, sy, active = false;
+  const THRESHOLD = 110;
+  const FADE_START = 55;
+
+  const coords = e => e.touches
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    : { x: e.clientX,            y: e.clientY };
+
+  function onDown(e) {
+    if (busy) return;
+    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+    ({ x: sx, y: sy } = coords(e));
+    active = true;
+    card.classList.remove('snapping');
+  }
+
+  function onMove(e) {
+    if (!active || busy) return;
+    const { x, y } = coords(e);
+    const dx = x - sx, dy = y - sy;
+    card.style.transform = `translate(${dx}px,${dy * 0.22}px) rotate(${dx * 0.065}deg)`;
+
+    const strength = Math.abs(dx);
+    if (dx > FADE_START) {
+      $('stamp-connect').style.opacity = Math.min(1, (strength - FADE_START) / 75);
+      $('stamp-skip').style.opacity    = 0;
+    } else if (dx < -FADE_START) {
+      $('stamp-skip').style.opacity    = Math.min(1, (strength - FADE_START) / 75);
+      $('stamp-connect').style.opacity = 0;
+    } else {
+      $('stamp-connect').style.opacity = 0;
+      $('stamp-skip').style.opacity    = 0;
+    }
+  }
+
+  function onUp(e) {
+    if (!active) return;
+    active = false;
+    const ex = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const dx = ex - sx;
+
+    if      (dx >  THRESHOLD) commitSwipe(card, 'yes');
+    else if (dx < -THRESHOLD) commitSwipe(card, 'no');
+    else {
+      card.classList.add('snapping');
+      card.style.transform = '';
+      $('stamp-connect').style.opacity = 0;
+      $('stamp-skip').style.opacity    = 0;
+    }
+  }
+
+  card.addEventListener('mousedown',  onDown);
+  card.addEventListener('touchstart', onDown, { passive: true });
+  document.addEventListener('mousemove',  onMove);
+  document.addEventListener('touchmove',  onMove, { passive: true });
+  document.addEventListener('mouseup',    onUp);
+  document.addEventListener('touchend',   onUp);
+
+  card._cleanup = () => {
+    document.removeEventListener('mousemove',  onMove);
+    document.removeEventListener('touchmove',  onMove);
+    document.removeEventListener('mouseup',    onUp);
+    document.removeEventListener('touchend',   onUp);
+  };
+}
+
+async function commitSwipe(card, dir) {
+  if (busy) return;
+  busy = true;
+  $('btn-no').disabled = $('btn-yes').disabled = true;
+  if (card._cleanup) card._cleanup();
+
+  $('stamp-connect').style.opacity = dir === 'yes' ? 1 : 0;
+  $('stamp-skip').style.opacity    = dir === 'no'  ? 1 : 0;
+
+  const tx  = dir === 'yes' ? '145%' : '-145%';
+  const rot = dir === 'yes' ? '22deg' : '-22deg';
+  card.style.transition = 'transform 0.4s cubic-bezier(0.6,0,1,0.5)';
+  card.style.transform  = `translateX(${tx}) rotate(${rot})`;
+
+  await post('/api/decide', { index: idx, decision: dir });
+
+  if (dir === 'yes' && currentData) {
+    const note  = currentData.evaluation?.note  || '';
+    const ghUrl = currentData.profile?.github_url || '';
+    if (note) {
+      $('note-area').innerHTML = `
+        <div class="note-box">
+          <div class="note-label">Your connection message</div>
+          <div class="note-text">"${esc(note)}"</div>
+          <div class="note-row">
+            <button class="copy-btn" onclick="copyNote(this,${JSON.stringify(note)})">Copy</button>
+            ${ghUrl ? `<a class="gh-link" href="${esc(ghUrl)}" target="_blank" rel="noopener">Open GitHub ↗</a>` : ''}
+          </div>
+        </div>`;
+      await sleep(2600);
+    } else {
+      await sleep(400);
+    }
+  } else {
+    await sleep(360);
+  }
+
+  idx++;
+  loadCard();
+}
+
+function decide(dir) {
+  if (busy) return;
+  commitSwipe($('card'), dir);
+}
+
+function copyNote(btn, note) {
+  navigator.clipboard.writeText(note).catch(() => {});
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+
+// ── done ──────────────────────────────────────────────────────────────────
+async function showDone() {
+  const accepted = await fetch('/api/results').then(r => r.json());
+  $('done-title').textContent = `${accepted.length} match${accepted.length !== 1 ? 'es' : ''} saved`;
+  $('done-sub').textContent   = `You swiped through ${total} GitHub profiles.`;
+
+  $('results-list').innerHTML = accepted.map(a => `
+    <div class="result-item">
+      <img class="r-avatar" src="${esc(a.avatar_url)}" alt="" onerror="this.style.display='none'">
+      <div class="r-info">
+        <div class="r-name">${esc(a.name)}</div>
+        <div class="r-handle">
+          <a href="${esc(a.github_url)}" target="_blank" rel="noopener"
+             style="color:inherit;text-decoration:none;">@${esc(a.username)}</a>
+          ${a.fit_score ? ` · <span style="color:var(--dim);font-size:12px">${a.fit_score}/100</span>` : ''}
+        </div>
+        ${a.connection_note ? `<div class="r-note">${esc(a.connection_note)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  $('prog-wrap').style.display = 'none';
+  $('prog-label').textContent  = '';
+  show('screen-done');
+}
+
+async function saveResults() {
+  const d = await fetch('/api/save').then(r => r.json());
+  alert(`✓ Saved ${d.count} match${d.count !== 1 ? 'es' : ''} to ${d.saved_to}`);
+}
+
+// ── keyboard ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!$('screen-swipe').classList.contains('active')) return;
+  if (['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  if (!busy && (e.key === 'ArrowRight' || e.key === 'y' || e.key === 'Y')) decide('yes');
+  if (!busy && (e.key === 'ArrowLeft'  || e.key === 'n' || e.key === 'N')) decide('no');
+});
+</script>
+</body>
+</html>

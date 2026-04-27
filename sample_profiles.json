@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Ava Chen",
+    "headline": "Co-founder & CTO at FluxForge Robotics",
+    "about": "I build hardware-first products at the edge of robotics and manufacturing. Previously led embedded systems teams and love mentoring early-stage technical founders.",
+    "linkedin_url": "https://www.linkedin.com/in/ava-chen-example"
+  },
+  {
+    "name": "Marcus Reed",
+    "headline": "Growth Lead | B2B SaaS",
+    "about": "I help SaaS startups scale pipeline with data-driven GTM systems. Interested in partnerships, demand gen, and sales ops.",
+    "linkedin_url": "https://www.linkedin.com/in/marcus-reed-example"
+  },
+  {
+    "name": "Priya Nair",
+    "headline": "Founder, MechPilot",
+    "about": "Working on low-cost sensing hardware for industrial safety. Mechanical engineer turned founder, focused on building reliable products with real-world impact.",
+    "linkedin_url": "https://www.linkedin.com/in/priya-nair-example"
+  }
+]

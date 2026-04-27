@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "LinkSwipe Exporter",
+  "version": "1.0",
+  "description": "Export LinkedIn search results to LinkSwipe JSON",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/search/results/people/*",
+        "https://www.linkedin.com/search/results/all/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

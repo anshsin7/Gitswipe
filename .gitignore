@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Output — generated at runtime, not for version control
+output/
+accepted_profiles.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
