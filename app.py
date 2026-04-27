@@ -61,14 +61,24 @@ def gh(url, params=None):
 def build_query(criteria: list[str]) -> str:
     data = llm([
         {"role": "system", "content": (
-            "Convert user networking criteria into a GitHub user search query string.\n"
-            "GitHub supports: location:city, language:python, followers:>N, repos:>N, 'keyword' in:bio\n"
-            "Return JSON: {\"query\": \"...\", \"explanation\": \"...\"}\n"
-            "Keep it broad enough to return results. Max 3 filters."
+            "Convert networking criteria into a GitHub user search query. "
+            "GitHub search is LIMITED — only these filters work reliably:\n"
+            "  location:city  (use the CITY, not university/institution name)\n"
+            "  language:python  (programming language)\n"
+            "  followers:>100\n"
+            "  repos:>5\n"
+            "\n"
+            "IMPORTANT RULES:\n"
+            "- Universities/schools (ETH, MIT, Stanford) → use location: of that city instead (location:Zurich, location:Cambridge, location:Boston)\n"
+            "- 'in:bio' almost never works for institutions — avoid it\n"
+            "- Keep it BROAD (1-2 filters max) so results come back — the AI will filter precisely later\n"
+            "- If criteria mention a city or country, always use location:\n"
+            "\n"
+            "Return JSON: {\"query\": \"...\", \"explanation\": \"...\"}"
         )},
         {"role": "user", "content": f"Criteria:\n{json.dumps(criteria)}"},
     ])
-    return data.get("query", " ".join(criteria[:2]))
+    return data.get("query", "followers:>10")
 
 
 def fetch_profile(username: str) -> dict:
