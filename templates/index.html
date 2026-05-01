@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script defer src="https://cloud.umami.is/script.js" data-website-id="0d023259-4b8b-410e-9123-f5798bd93917"></script></head> 
+<head>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="0d023259-4b8b-410e-9123-f5798bd93917"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>GitSwipe</title>
@@ -11,6 +12,7 @@
   --bg:      #0d1117;
   --surface: #161b22;
   --surface2:#1c2128;
+  --surface3:#22272e;
   --border:  #30363d;
   --text:    #e6edf3;
   --muted:   #8b949e;
@@ -20,13 +22,16 @@
   --green:   #3fb950;
   --red:     #f85149;
   --yellow:  #d29922;
+  --orange:  #f0883e;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif;
-  background: var(--bg);
-  background-image: radial-gradient(circle at 1px 1px, #1c2128 1px, transparent 0);
-  background-size: 28px 28px;
+  background:
+    linear-gradient(180deg, rgba(88,166,255,0.08), transparent 360px),
+    radial-gradient(circle at 1px 1px, rgba(139,148,158,0.18) 1px, transparent 0),
+    var(--bg);
+  background-size: auto, 30px 30px, auto;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -39,15 +44,18 @@ body {
 /* ── HEADER ── */
 header {
   width: 100%;
-  max-width: 420px;
-  padding: 22px 20px 0;
-  text-align: center;
+  max-width: 1120px;
+  padding: 24px 24px 0;
+  text-align: left;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
 }
 #auth-area {
-  position: absolute;
-  top: 0; right: 0;
   display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
 }
 .login-btn {
   background: var(--surface);
@@ -78,10 +86,21 @@ header {
 .logo {
   font-size: 24px;
   font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: 0;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.logo::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(88,166,255,0.95), rgba(63,185,80,0.9)),
+    var(--blue);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 8px 24px rgba(88,166,255,0.22);
 }
 .logo-sub {
   font-size: 12px;
@@ -117,26 +136,97 @@ header {
 /* ── SCREENS ── */
 .screen { display: none; width: 100%; max-width: 420px; padding: 20px 16px 40px; flex-direction: column; align-items: center; }
 .screen.active { display: flex; }
+#screen-setup {
+  max-width: 1120px;
+  min-height: calc(100vh - 74px);
+  padding: 58px 24px 56px;
+  align-items: stretch;
+  justify-content: center;
+}
 
 /* ════════════ SETUP ════════════ */
-.setup-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 28px 24px;
+.landing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 44px;
+  align-items: center;
   width: 100%;
 }
-.setup-card h2 {
-  font-size: 19px;
-  font-weight: 700;
+.hero-copy {
+  max-width: 600px;
+}
+.eyebrow {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+}
+.hero-copy h1 {
   color: var(--text);
-  margin-bottom: 6px;
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 0.95;
+  letter-spacing: 0;
+  font-weight: 850;
+  margin-bottom: 22px;
+}
+.hero-copy p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 530px;
+  margin-bottom: 26px;
+}
+.landing-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 540px;
+}
+.stat {
+  border: 1px solid var(--border);
+  background: rgba(22,27,34,0.72);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.stat strong {
+  display: block;
+  color: var(--text);
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+.stat span {
+  display: block;
+  color: var(--dim);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.setup-card {
+  background: rgba(22,27,34,0.92);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+  width: 100%;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.36);
+  backdrop-filter: blur(10px);
+}
+.setup-card h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 7px;
 }
 .setup-card p {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--muted);
-  line-height: 1.65;
-  margin-bottom: 24px;
+  line-height: 1.6;
+  margin-bottom: 20px;
 }
 label {
   display: block;
@@ -149,9 +239,9 @@ label {
 }
 textarea {
   width: 100%;
-  background: var(--bg);
+  background: rgba(13,17,23,0.92);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 12px 14px;
   font-size: 13.5px;
   font-family: inherit;
@@ -164,13 +254,35 @@ textarea {
 }
 textarea:focus { border-color: var(--purple); }
 textarea::placeholder { color: #3d444d; }
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 18px;
+}
+.preset-btn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.preset-btn:hover {
+  color: var(--text);
+  border-color: var(--blue);
+  background: rgba(88,166,255,0.08);
+}
 
 #search-btn {
   width: 100%;
-  background: linear-gradient(135deg, #6e28d9, #1d4ed8);
+  background: linear-gradient(135deg, #238636, #0969da);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px;
   font-size: 15px;
   font-weight: 700;
@@ -184,14 +296,173 @@ textarea::placeholder { color: #3d444d; }
 
 .query-chip {
   margin-top: 14px;
-  background: rgba(163,113,247,0.08);
-  border: 1px solid rgba(163,113,247,0.2);
+  background: rgba(88,166,255,0.08);
+  border: 1px solid rgba(88,166,255,0.2);
   border-radius: 8px;
   padding: 10px 14px;
   display: none;
 }
 .query-chip .ql { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-.query-chip .qv { font-size: 12.5px; color: var(--purple); font-weight: 600; }
+.query-chip .qv { font-size: 12.5px; color: var(--blue); font-weight: 600; }
+.preview-card {
+  background: rgba(22,27,34,0.78);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.preview-title {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+.preview-status {
+  color: var(--green);
+  font-size: 11px;
+  border: 1px solid rgba(63,185,80,0.24);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(63,185,80,0.08);
+}
+.mini-profile {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mini-banner {
+  background: linear-gradient(135deg, rgba(88,166,255,0.22), rgba(63,185,80,0.18));
+  padding: 18px;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+}
+.mini-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, #58a6ff, #3fb950);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.16);
+  flex-shrink: 0;
+}
+.mini-name {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.mini-handle {
+  color: var(--blue);
+  font-size: 12px;
+}
+.mini-body {
+  padding: 15px 18px 18px;
+}
+.mini-line {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface3);
+  margin-bottom: 8px;
+}
+.mini-line.short { width: 62%; }
+.mini-repos {
+  display: grid;
+  gap: 8px;
+  margin-top: 15px;
+}
+.mini-repo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.mini-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 7px;
+}
+.mini-dot.py { background: #3572A5; }
+.mini-dot.ts { background: #3178c6; }
+.mini-score {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+}
+.mini-score strong {
+  color: var(--green);
+}
+.mini-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.mini-actions span {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px;
+}
+.mini-actions span:last-child {
+  color: var(--green);
+  border-color: rgba(63,185,80,0.3);
+}
+@media (max-width: 900px) {
+  header {
+    padding: 18px 16px 0;
+  }
+  #screen-setup {
+    min-height: auto;
+    padding: 34px 16px 40px;
+  }
+  .landing-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .hero-copy h1 {
+    font-size: 44px;
+  }
+  .preview-card {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  header {
+    align-items: flex-start;
+  }
+  .logo-sub {
+    max-width: 210px;
+  }
+  .login-btn span {
+    display: none;
+  }
+  .landing-stats {
+    grid-template-columns: 1fr;
+  }
+  .setup-card {
+    padding: 18px;
+  }
+}
 
 /* ════════════ SWIPE ════════════ */
 #screen-swipe { padding-top: 12px; }
@@ -596,19 +867,66 @@ textarea::placeholder { color: #3d444d; }
 
 <!-- ════════ SETUP ════════ -->
 <div class="screen active" id="screen-setup">
-  <div class="setup-card">
-    <h2>Who are you looking for?</h2>
-    <p>Describe your ideal collaborator in plain English. GitSwipe searches GitHub and scores every profile with AI — then lets you swipe.</p>
+  <div class="landing-grid">
+    <section class="hero-copy" aria-labelledby="landing-title">
+      <div class="eyebrow">Developer discovery for warm outreach</div>
+      <h1 id="landing-title">Find GitHub people worth messaging.</h1>
+      <p>Describe the collaborator, founder, engineer, or open source maintainer you want to meet. GitSwipe turns that into a GitHub search, scores each profile, and gives you a swipeable shortlist.</p>
+      <div class="landing-stats" aria-label="GitSwipe workflow">
+        <div class="stat"><strong>1</strong><span>Plain-English criteria</span></div>
+        <div class="stat"><strong>30</strong><span>GitHub profiles ranked</span></div>
+        <div class="stat"><strong>AI</strong><span>Personalized notes</span></div>
+      </div>
+    </section>
 
-    <label>Your criteria — one per line</label>
-    <textarea id="criteria" rows="5"
-      placeholder="Works in AI / machine learning&#10;Based in Zurich or studying at ETH&#10;Open source contributor with hardware experience&#10;Has >500 GitHub followers"></textarea>
+    <section class="search-panel" aria-label="Start a GitSwipe search">
+      <div class="setup-card">
+        <h2>Start a search</h2>
+        <p>Use a few specific signals. Broader criteria usually finds better candidates, then the scoring pass filters them down.</p>
 
-    <button id="search-btn" onclick="startSearch()">Find Developers →</button>
+        <label>Your criteria, one per line</label>
+        <textarea id="criteria" rows="6"
+          placeholder="Works in AI / machine learning&#10;Based in Zurich or studying at ETH&#10;Open source contributor with hardware experience&#10;Has >500 GitHub followers"></textarea>
 
-    <div class="query-chip" id="query-chip">
-      <div class="ql">GitHub search query</div>
-      <div class="qv" id="query-text"></div>
+        <div class="preset-row" aria-label="Criteria examples">
+          <button class="preset-btn" type="button" onclick="setCriteriaPreset('ai')">AI builders</button>
+          <button class="preset-btn" type="button" onclick="setCriteriaPreset('oss')">Open source</button>
+          <button class="preset-btn" type="button" onclick="setCriteriaPreset('founders')">Technical founders</button>
+        </div>
+
+        <button id="search-btn" onclick="startSearch()">Find developers</button>
+
+        <div class="query-chip" id="query-chip">
+          <div class="ql">GitHub search query</div>
+          <div class="qv" id="query-text"></div>
+        </div>
+      </div>
+
+      <div class="preview-card" aria-hidden="true">
+        <div class="preview-head">
+          <div class="preview-title">Profile preview</div>
+          <div class="preview-status">Strong match</div>
+        </div>
+        <div class="mini-profile">
+          <div class="mini-banner">
+            <div class="mini-avatar"></div>
+            <div>
+              <div class="mini-name">Maya Chen</div>
+              <div class="mini-handle">@mayachen</div>
+            </div>
+          </div>
+          <div class="mini-body">
+            <div class="mini-line"></div>
+            <div class="mini-line short"></div>
+            <div class="mini-repos">
+              <div class="mini-repo"><span><span class="mini-dot py"></span>agent-lab</span><span>1.8k stars</span></div>
+              <div class="mini-repo"><span><span class="mini-dot ts"></span>repo-radar</span><span>642 stars</span></div>
+            </div>
+            <div class="mini-score"><span>Fit score</span><strong>94 / 100</strong></div>
+            <div class="mini-actions"><span>Skip</span><span>Connect</span></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -689,7 +1007,7 @@ async function initAuth() {
           .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
           0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
         </svg>
-        Login with GitHub
+        <span>Login with GitHub</span>
       </a>`;
   }
 }
@@ -708,6 +1026,31 @@ const esc = s => String(s ?? '')
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function setCriteriaPreset(kind) {
+  const presets = {
+    ai: [
+      'Works in AI / machine learning',
+      'Builds developer tools or agent workflows',
+      'Based in Zurich or nearby Europe',
+      'Has public repos with meaningful stars'
+    ],
+    oss: [
+      'Maintains open source infrastructure',
+      'Writes Rust, Go, Python, or TypeScript',
+      'Active on GitHub with popular repositories',
+      'Interested in observability, databases, or compilers'
+    ],
+    founders: [
+      'Technical founder or early startup engineer',
+      'Builds SaaS, AI products, or developer tools',
+      'Has shipped public projects',
+      'Based in Switzerland or Germany'
+    ],
+  };
+  $('criteria').value = (presets[kind] || presets.ai).join('\n');
+  $('criteria').focus();
+}
 
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
